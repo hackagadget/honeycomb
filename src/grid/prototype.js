@@ -120,6 +120,59 @@ export function hexesBetween(firstHex, lastHex) {
     return hexes
 }
 
+export function hexesInRangeFactory({ isValidHex }) {
+    /**
+     * @memberof Grid#
+     * @instance
+     * @see {@link https://www.redblobgames.com/grids/hexagons/#range-coordinate|redblobgames.com}
+     *
+     * @param {hex} centerHex       A hex to get surrounding hexes from.
+     * @param {number} [range=0]    The range (in hexes) surrounding the center hex.
+     *
+     * @returns {hex[]}             An array with all hexes surrounding the passed center hex.
+     *                              Only hexes that are present in the grid are returned.
+     *
+     * @throws {Error} When no valid hex is passed.
+     *
+     * @example
+     * const Hex = Honeycomb.extendHex({ orientation: 'pointy' })
+     * const Grid = Honeycomb.defineGrid(Hex)
+     * const grid = Grid.rectangle({ width: 5, height: 5 })
+     *
+     * grid.hexesInRange(Hex(2, 2), 2)      // [
+     *                                      //    { x: 0, y: 2 },
+     *                                      //    { x: 0, y: 3 },
+     *                                      //    { x: 1, y: 4 },
+     *                                      //    ...
+     *                                      //    { x: 3, y: 0 },
+     *                                      //    { x: 3, y: 1 },
+     *                                      //    { x: 4, y: 2 }
+     *                                      // ]
+     *
+     * // only returns hexes that exist in the grid:
+     * grid.hexesInRange(Hex(-1, -1), 2)    // [
+     *                                      //    { x: 0, y: 0 },
+     *                                      //    { x: 0, y: 1 },
+     *                                      //    { x: 1, y: 0 },
+     *                                      // ]
+     */
+    return function hexesInRange(centerHex, range = 0) {
+        if (!isValidHex(centerHex)) {
+            throw new Error(`Invalid center hex: ${centerHex}.`)
+        }
+
+        let hexes = []
+
+        for (let q = -range; q <= range; q++) {
+            for (let r = Math.max(-range, -q - range); r <= Math.min(range, -q + range); r++) {
+                hexes.push(this.get(centerHex.cubeToCartesian({ q: centerHex.q + q, r: centerHex.r + r })))
+            }
+        }
+
+        return hexes.filter(Boolean)
+    }
+}
+
 export function neighborsOfFactory({ isValidHex, signedModulo, compassToNumberDirection }) {
     /**
      * @memberof Grid#
